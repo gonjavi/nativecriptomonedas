@@ -8,6 +8,14 @@ const Header = () =>(
 const styles = StyleSheet.create({
   encabezado: {
     paddingTop: Platform.OS === 'ios' ? 50 : 10,
+    fontSize: 20,
+    fontFamily: 'Lato-Black',
+    backgroundColor: '#5e49e2',
+    paddingBottom: 10,
+    textAlign:'center',
+    textTransform: 'uppercase',
+    color: '#fff',
+    marginBottom: 30,
   }
 });
 
