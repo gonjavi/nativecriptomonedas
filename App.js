@@ -1,26 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   ScrollView,
   View,
-  Text,
+  ActivityIndicator,
   Image,
 } from 'react-native';
+import axios from 'axios';
 import Header from './components/Header';
 import Formulario from './components/Formulario';
+import Cotizacion from './components/Cotizacion';
+
 
 const App = () => {
+  const [moneda, guardarModena] = useState('');
+  const [criptomoneda, guardarCriptomoneda] = useState('');
+  const [consultarAPI, guardarConsultarAPI] = useState(false);
+  const [resultado, guardarResultado] = useState({});
+  const [cargando, guardarCargando] = useState(false);
+  
+    useEffect(() => {
+     const cotizarCriptomoneda = async () => {
+      if (consultarAPI) {
+        // consulta api para cotizacion
+        const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`;
+        const resultado = await axios.get(url);
+        console.log(resultado.data.DISPLAY[criptomoneda][moneda]);
+
+        // ocultar el spinner y mostrar el resultado
+        guardarCargando(true)
+        setTimeout(() => {
+          guardarResultado(resultado.data.DISPLAY[criptomoneda][moneda]);
+          guardarConsultarAPI(false);
+          guardarCargando(false);
+        }, 3000);
+      }
+     }
+     cotizarCriptomoneda();
+  }, [consultarAPI]);
+
+  // mostrar el spinner o resultado
+  const componente = cargando ? <ActivityIndicator size="large" color="#5e49e2" /> :  <Cotizacion resultado={resultado} />;
+
   return (
     <>
-      <Header />
-      <Image 
-        style={styles.imagen}
-        source={ require('./assets/img/cryptomonedas.png') }
-      />
+      <ScrollView>
+        <Header />
+        <Image 
+          style={styles.imagen}
+          source={ require('./assets/img/cryptomonedas.png') }
+        />
 
-      <View style={styles.contenido}>
-        <Formulario />
-      </View>
+        <View style={styles.contenido}>
+          <Formulario
+            moneda={moneda}
+            criptomoneda={criptomoneda}
+            guardarModena={guardarModena}
+            guardarCriptomoneda={guardarCriptomoneda}
+            guardarConsultarAPI={guardarConsultarAPI}
+          />
+        </View>
+        <View style={{ marginTop: 40 }}>
+          {componente}
+        </View>
+
+      </ScrollView>
     </>
   );
 };

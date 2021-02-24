@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Text, StyleSheet, View, Platform } from 'react-native';
+import { Text, StyleSheet, View, Platform, TouchableHighlight, Alert } from 'react-native';
 import { Picker } from '@react-native-community/picker';
 import axios from 'axios';
 
-const Formulario = () => {
-  const [moneda, guardarModena] = useState('');
-  const [criptomoneda, guardarCriptomoneda] = useState('');
-  const [criptomonedas, guardarCriptomonedas] = useState('');
+const Formulario = ({ moneda, criptomoneda, guardarCriptomoneda, guardarModena, guardarConsultarAPI}) => {
+  const [criptomonedas, guardarCriptomonedas] = useState([]);
   
   useEffect(() => {
     const consultarAPI  = async () => {
       const url = 'https://min-api.cryptocompare.com/data/top/mktcapfull?limit=10&tsym=USD';
       const resultado = await axios.get(url);
-      guardarCriptomonedas(resultado.data.Data)
+      guardarCriptomonedas(resultado.data.Data);
     }
     consultarAPI();
   }, [])
@@ -20,12 +18,37 @@ const Formulario = () => {
   const obtenerMoneda = moneda => {
    guardarModena(moneda)
   }
+
+  const obtenerCriptomoneda = cripto => {
+    guardarCriptomoneda(cripto);
+  }
+
+  const cotizarPrecio = () => {
+    if (moneda.trim() === '' || criptomoneda.trim() === '') {
+      mostrarAlerta();
+      return;
+    }
+    // cambiara variabla de estado
+    guardarConsultarAPI(true);
+  }
+
+  const mostrarAlerta = () => {
+    Alert.alert(
+      'Error...',
+      'Ambos campos son abligatorios',
+      [
+        {text: 'OK'}
+      ]
+    )
+  }
+
   return (
     <View>
       <Text style={styles.label}>Moneda</Text>
       <Picker
-      selectedValue={moneda}
+        selectedValue={moneda}
         onValueChange={moneda => obtenerMoneda(moneda)}
+        itemStyle={{ height: 120 }}
       >
         <Picker.Item label="- Selecione -" value="" />
         <Picker.Item label="Dolar de Estados Unidos" value="USD" />
@@ -34,6 +57,26 @@ const Formulario = () => {
         <Picker.Item label="Libra Esterlina" value="GBP" />
       </Picker>
       <Text style={styles.label}>Criptomoneda</Text>
+      <Picker
+        selectedValue={criptomoneda}
+        onValueChange={moneda => obtenerCriptomoneda(moneda)}
+        itemStyle={{ height: 120 }}
+      >
+        <Picker.Item label="- Selecione -" value="" />
+        { criptomonedas.map(cripto => (
+          <Picker.Item 
+            key={cripto.CoinInfo.Id} 
+            label={cripto.CoinInfo.FullName} 
+            value={cripto.CoinInfo.Name} />
+        ))}
+      </Picker>
+
+      <TouchableHighlight 
+        style={styles.btnCotizar}
+        onPress={() => cotizarPrecio()}
+      >
+        <Text style={styles.textoCotizar}>Cotizar</Text>
+      </TouchableHighlight>
     </View>
   )
 }
@@ -44,6 +87,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontSize: 22,
     marginVertical: 20,
+  },
+  btnCotizar: {
+    backgroundColor: '#5e49e2',
+    padding: 10,
+    marginTop: 20,
+    color: '#fff'
+  },
+  textoCotizar: {
+    color: '#fff',
+    fontSize: 18,
+    fontFamily: 'Lato-Black',
+    textTransform: 'uppercase',
+    textAlign: 'center',
   }
 });
 
